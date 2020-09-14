@@ -34,11 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     mainMenu.initComponent(menuOnClick);
     this.categories = CategoryDAO.all();
-    appBarTitle = Text("");
 
-    int initialPage = 4;
-    _pageController = PageController(initialPage: initialPage);
-    appBarTitle = Text(_pageMenuItems[initialPage].text);
+    _pageController = PageController(initialPage: 0);
+    appBarTitle = Text("");
   }
 
   @override
@@ -168,20 +166,15 @@ class _HomeScreenState extends State<HomeScreen> {
     var orders = MainMenuItem(text: "Ordini", type: MainMenuItemType.Orders );
     var profile = MainMenuItem(text: "Profilo", type: MainMenuItemType.Profile );
 
-    var space = MainMenuItem( type: MainMenuItemType.Expanded );
-    var logout = MainMenuItem(text: "Esci", type: MainMenuItemType.Logout );
-
     mainMenu.menu_items = [];
     mainMenu.menu_items.addAll( [cart,orders,profile] );
     mainMenu.menu_items.addAll( [divider,label_cat] );
     mainMenu.menu_items.addAll( categories );
-    mainMenu.menu_items.addAll( [space,logout] );
 
     _pageMenuItems = [cart,orders,profile];
     _pageMenuItems.addAll(categories);
 
-
-    appBarTitle = Text(_pageMenuItems[_pageController.page.toInt()].text);
+    //appBarTitle = Text(_pageMenuItems[_pageController.page.toInt()].text);
 
     Widget pageView = PageView(
       key: ValueKey(cats),

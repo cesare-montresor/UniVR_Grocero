@@ -17,8 +17,6 @@ class MainMenuItemType {
   static String Orders = 'orders';
   static String Profile = 'profile';
   static String Warehouse = 'warehouse';
-  static String Logout = 'logout';
-  static String Expanded = 'expanded';
 }
 
 //Menu Item
@@ -69,26 +67,6 @@ class MainMenu extends StatelessWidget{
       return Divider();
     }
 
-    if (item.type == MainMenuItemType.Expanded){
-      return Flexible(child: Container(width: 1,),);
-    }
-
-    if (item.type == MainMenuItemType.Logout){
-      return FlatButton(
-        color: Colors.red,
-        onPressed: (){
-            Auth.logout();
-            Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
-        },
-        child:Container(
-          height: 50,
-          alignment: Alignment.center,
-          child: IntrinsicWidth(child: Text(item.text.toUpperCase(), style: TextStyle(color: Colors.white, letterSpacing: 5) , )),
-
-        ),
-      );
-    }
-
     return ListTile(
       title: Text( item.text, style: TextStyle( color: colorForItem(item) ) ),
       onTap: () {
@@ -102,14 +80,33 @@ class MainMenu extends StatelessWidget{
   Widget build(BuildContext context) {
     List<Widget> menuItems = menu_items.map((item)=>buildMenuItem(context,item)).toList();
 
+    Widget logoutButton = FlatButton(
+      color: Colors.red,
+      onPressed: (){
+        Auth.logout();
+        Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
+      },
+      child:Container(
+        height: 50,
+        alignment: Alignment.center,
+        child: IntrinsicWidth(child: Text("ESCI", style: TextStyle(color: Colors.white, letterSpacing: 5) , )),
+
+      ),
+    );
+
     return Drawer(
         child: SafeArea(
             child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                key: ValueKey(menuItems.length),
-                //physics: NeverScrollableScrollPhysics(),
-                //shrinkWrap: true,
-                children: menuItems,
+              children: [
+                ListView(
+                    key: ValueKey(menuItems.length),
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    children: menuItems,
+                ),
+                Expanded(child: Container(),),
+                logoutButton
+              ],
             )
         )
     );

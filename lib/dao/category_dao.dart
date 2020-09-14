@@ -1,0 +1,14 @@
+import 'package:grocero/model/category_model.dart';
+import 'package:grocero/model/user_model.dart';
+import '../component/db.dart';
+
+class CategoryDAO{
+  static Future<List<CategoryModel>> all() async {
+    var rows = await DB.query( CategoryModel.referenceTable() );
+    List<CategoryModel> cats = [];
+    for (var row in rows ){
+      cats.add(CategoryModel.fromMap(row));
+    }
+    return cats;
+  }
+}

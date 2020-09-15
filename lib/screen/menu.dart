@@ -80,12 +80,23 @@ class MainMenu extends StatelessWidget{
   Widget build(BuildContext context) {
     List<Widget> menuItems = menu_items.map((item)=>buildMenuItem(context,item)).toList();
 
+    Widget logoutDialog = AlertDialog(
+      title: Text("Esci"),
+      content: Text("Sei sicuro di voler uscire?"),
+      actions: [
+        FlatButton(child: Text("Annulla"), onPressed: (){
+          Navigator.of(context).pop();
+        }),
+        FlatButton(child: Text("Esci", style: TextStyle(color: Colors.red),), onPressed: (){
+          Auth.logout();
+          Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
+        },),
+      ],
+    );
+
     Widget logoutButton = FlatButton(
       color: Colors.red,
-      onPressed: (){
-        Auth.logout();
-        Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
-      },
+      onPressed: () => showDialog( context: context,  builder: (_) => logoutDialog ),
       child:Container(
         height: 50,
         alignment: Alignment.center,

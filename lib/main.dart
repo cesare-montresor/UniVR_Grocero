@@ -13,6 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DB.init(); //init DB
   await Auth.TryAutologin();
+
   runApp(GroceroApp.sharedApp);
 }
 

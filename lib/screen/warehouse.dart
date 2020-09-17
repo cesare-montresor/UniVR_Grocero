@@ -11,8 +11,9 @@ import 'package:grocero/dao/product_dao.dart';
 import 'package:grocero/main.dart';
 import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/order_model.dart';
-import 'package:grocero/model/product.dart';
+import 'package:grocero/model/product_model.dart';
 import 'package:grocero/model/user_model.dart';
+import 'package:grocero/routes.dart';
 import 'package:grocero/screen/product_cell.dart';
 import 'package:grocero/screen/warehouse_cell.dart';
 
@@ -72,12 +73,6 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     products = ProductDAO.all(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
   }
 
-  void cellChanged(int amount) async{
-    //if (widget.filter.category_id != null )
-    refreshData();
-    setState(() {});
-  }
-
   void toggleOrder(String column_name){
     if (orderBy == column_name){
       reverse = !reverse;
@@ -112,6 +107,21 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     searchBy = text;
     refreshData();
     setState(() {});
+  }
+
+  void onProductSaved(){
+    refreshData();
+    setState(() {});
+  }
+
+  void onSelectProduct(ProductModel product){
+    Navigator.of(context).pushNamed(
+        Router.RouteProductDetail,
+        arguments: {
+          'product':product,
+          'onSuccess': onProductSaved
+        }
+    );
   }
 
   Widget searchBar(){
@@ -165,6 +175,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
     return  FutureBuilder<List<ProductModel>>(
@@ -180,7 +191,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                           child: ListView.builder(
                               key: ValueKey(products.length > 0 ? products.last.id-products.first.id+products.length*0.1: products),
                               itemCount: products.length,
-                              itemBuilder: (BuildContext ctxt, int index) => WarehouseCell(product:products[index], onChange: cellChanged),
+                              itemBuilder: (BuildContext ctxt, int index) => WarehouseCell(product:products[index], onSelectProduct: onSelectProduct),
                           ),
                       )
                     ])

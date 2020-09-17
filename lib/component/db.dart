@@ -63,7 +63,9 @@ abstract class DB {
       await DB.update(model);
       return model.id;
     }else{
-      return await DB.insert(model);
+      int new_id = await DB.insert(model);
+      model.id = new_id;
+      return new_id;
     }
   }
 }

@@ -4,7 +4,7 @@ import 'package:grocero/component/dateutils.dart';
 import 'package:grocero/dao/order_dao.dart';
 import 'package:grocero/main.dart';
 import 'package:grocero/model/order_model.dart';
-import 'package:grocero/model/product.dart';
+import 'package:grocero/model/product_model.dart';
 import 'package:grocero/model/user_model.dart';
 import 'package:grocero/routes.dart';
 

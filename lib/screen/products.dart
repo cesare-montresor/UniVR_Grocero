@@ -12,7 +12,7 @@ import 'package:grocero/dao/product_dao.dart';
 import 'package:grocero/main.dart';
 import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/order_model.dart';
-import 'package:grocero/model/product.dart';
+import 'package:grocero/model/product_model.dart';
 import 'package:grocero/model/user_model.dart';
 import 'package:grocero/screen/product_cell.dart';
 

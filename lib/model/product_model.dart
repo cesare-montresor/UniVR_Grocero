@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/user_model.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProductModel extends Model {
   int category_id;
@@ -23,7 +25,7 @@ class ProductModel extends Model {
     var path = "asset/image/product_$product_id.jpg";
     return Image.asset(path);
   }
-
+   
   Image picture(){
     if (this.img == null){
       this.img = pictureByID(this.id);

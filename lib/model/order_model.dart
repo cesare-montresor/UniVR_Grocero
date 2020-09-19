@@ -1,4 +1,5 @@
 import 'package:grocero/dao/order_item_dao.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/user_model.dart';
@@ -66,7 +67,7 @@ class OrderModel extends Model {
 
   Future<List<OrderItemModel>> getItems() async {
     if (_items == null){
-      _items = await OrderItemDAO.getByOrderID(this.id);
+      _items = await GroceroApp.sharedApp.dao.OrderItem.getByOrderID(this.id);
     }
     return _items;
   }

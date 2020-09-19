@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:grocero/component/db.dart';
 import 'package:grocero/dao/order_dao.dart';
 import 'package:grocero/dao/order_item_dao.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/order_model.dart';
@@ -45,7 +46,7 @@ class _ProductCellState extends State<ProductCell> {
   }
 
   void refresh(){
-    order_item = OrderItemDAO.getOrderProduct(order.id, product.id);
+    order_item = GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
   }
 
   @override
@@ -69,7 +70,7 @@ class _ProductCellState extends State<ProductCell> {
     }
 
 
-    List<OrderItemModel> item_list = await OrderItemDAO.getOrderProduct(order.id, product.id);
+    List<OrderItemModel> item_list = await GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
     OrderItemModel item;
     if (item_list.length == 0) {
       if (amount > 0){
@@ -86,8 +87,9 @@ class _ProductCellState extends State<ProductCell> {
         DB.save(item);
       }
     }
-    OrderDAO.updateTotal(order.id);
-    order = await OrderDAO.get(order.id);
+
+    GroceroApp.sharedApp.dao.Order.updateTotal(order.id);
+    order = await GroceroApp.sharedApp.dao.Order.get(order.id);
 
     if (widget.onChange != null){
       widget.onChange(amount);
@@ -101,7 +103,7 @@ class _ProductCellState extends State<ProductCell> {
 
   @override
   Widget build(BuildContext context) {
-    order_item = OrderItemDAO.getOrderProduct(order.id, product.id);
+    order_item = GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
     return FutureBuilder<List<OrderItemModel>>(
         future: order_item,
         builder: (BuildContext context, AsyncSnapshot<List<OrderItemModel>> snapshot) {

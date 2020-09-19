@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grocero/component/auth.dart';
 import 'package:grocero/dao/category_dao.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/category_model.dart';
 import 'package:grocero/routes.dart';
 
@@ -48,7 +49,7 @@ class MainMenu extends StatelessWidget{
   List<MainMenuItem> menu_items=[];
 
   void initComponent(MainMenuOnClick onClick){
-    this.categories =  CategoryDAO.all();
+    this.categories =  GroceroApp.sharedApp.dao.Category.all();
     this.onClick = onClick;
   }
 

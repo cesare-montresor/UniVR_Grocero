@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:grocero/dao/card_dao.dart';
 import 'package:grocero/dao/worker_dao.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/card_model.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/worker_model.dart';
@@ -84,7 +85,7 @@ class UserModel extends Model {
   }
 
   Future<CardModel> cardInfo() async{
-    return await CardDAO.getByUserID(this.id);
+    return await GroceroApp.sharedApp.dao.Card.getByUserID(this.id);
   }
 
   bool isWorker(){
@@ -93,7 +94,7 @@ class UserModel extends Model {
 
   Future<WorkerModel> workerInfo() async{
     if (isWorker()){
-      return await WorkerDAO.getByUserID(this.id);
+      return await GroceroApp.sharedApp.dao.Worker.getByUserID(this.id);
     }
     return null;
   }

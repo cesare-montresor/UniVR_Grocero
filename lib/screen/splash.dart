@@ -1,15 +1,6 @@
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:grocero/component/auth.dart';
-import 'package:grocero/main.dart';
-import 'package:grocero/model/user_model.dart';
-import 'package:grocero/routes.dart';
-
-
-Timer timer;
+import 'package:grocero/controller/spash_controller.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -18,24 +9,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer _timer;
-  int delay = 2;
-
-  void startTimer(BuildContext context) {
-    if ( _timer != null){
-      _timer.cancel();
-      _timer = null;
-    }
-
-    _timer = new Timer(
-        Duration(seconds: delay),
-        ()=>changeScreen(context)
-    );
-  }
-
+  SplashScreenController _ctrl = SplashScreenController();
   @override
   Widget build(BuildContext context) {
-    startTimer(context);
+    _ctrl.startTimer(context);
     return Scaffold(
       body: Center(
         child: Column(
@@ -49,17 +26,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void changeScreen(BuildContext context) async{
-    if ( Auth.isAuth() ){
-      UserModel user = GroceroApp.sharedApp.currentUser;
-      if (user.isWorker()) {
-        Navigator.of(context).pushReplacementNamed(Router.RouteHomeWorker);
-      }else{
-        Navigator.of(context).pushReplacementNamed(Router.RouteHome);
-      }
-    }
-    else {
-      Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
-    }
-  }
 }

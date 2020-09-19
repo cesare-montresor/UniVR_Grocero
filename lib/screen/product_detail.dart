@@ -60,7 +60,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     product = widget.product;
-    categories = CategoryDAO.all();
+    categories = GroceroApp.sharedApp.dao.Category.all();
     bool has_product = (product != null);
     if ( product == null){
       product = ProductModel();
@@ -131,19 +131,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget FlexRow(Widget left, Widget right, {double ratio}){
     ratio = ratio == null?0.5:ratio;
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-      Expanded(
-        child: left,
-        flex: (10*ratio).toInt()
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: left,
+              flex: (10*ratio).toInt()
+            ),
+            Expanded(
+              child: right,
+              flex: (10*(1-ratio)).toInt()
+            ),
+          ]
       ),
-      Expanded(
-        child: right,
-        flex: (10*(1-ratio)).toInt()
-      ),
-
-    ]);
+    );
   }
 
   @override
@@ -158,38 +162,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       builder: (BuildContext context, AsyncSnapshot<List<CategoryModel>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done){
           var cats = snapshot.data;
-          return DropdownButton(
+          return Container( child: DropdownButton(
             items: cats.map((cat)=>DropdownMenuItem(child: Text(cat.name), value:cat.id)).toList(),
             value: selected_category,
             onChanged: (value) => category_changed(value),
-          );
+          ));
         }
         return DropdownButton(items: [], onChanged: (value) {  },);
       },
     );
 
-
+    TextStyle titleStyle = TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 2, color:Colors.black54, decoration: TextDecoration.underline);
 
     List<Widget> fields =  [
         // Nome
-        Text("Nome"),
+        Text("NOME", style: titleStyle ),
         TextField(controller: name, onChanged: (text){product.name=text.trim(); },),
 
         //Brand
         FlexRow(
-          Text("Brand"),
+          Text("BRAND", style: titleStyle),
           TextField(controller: brand, textAlign:  TextAlign.left , onChanged: (text){product.brand=text.trim(); },)
         ),
         FlexRow(
-          Text("Categoria"),
+          Text("CATEGORIA", style: titleStyle),
           widget_cat_list,
         ),
         FlexRow(
-          Text("Quantità"),
+          Text("QUANTITÀ", style: titleStyle),
           TextField(controller: qty, textAlign: TextAlign.right, onChanged: (text){product.qty=text.trim(); },),
         ),
         FlexRow(
-          Text("Disponibilità"),
+          Text("DISP. MAGAZZINO", style: titleStyle),
           TextField(controller:  available, textAlign: TextAlign.right, onChanged: (text){
             text = text.trim();
             String clean = text.replaceAll('[^0-9]', '');
@@ -202,7 +206,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           },),
         ),
         FlexRow(
-          Text("Prezzo €"),
+          Text("PREZZO €", style: titleStyle),
           TextField(controller: price, textAlign: TextAlign.right, onChanged: (text){
             text = text.trim();
             String clean = text.replaceAll(',', '.');
@@ -215,18 +219,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             product.price = value;
           },),
         ),
+
         FlexRow(
-          Text("Tipo"),
+          Text("TIPO", style: titleStyle),
           TextField(controller: type,  textAlign:  TextAlign.left,  onChanged: (text){product.type=text.trim(); },),
         ),
+        SizedBox(height: 10,),
         //Tags
-        Text("Tags"),
+        Text("TAGS", style: titleStyle),
         TextField(controller: tags,  textAlign:  TextAlign.left, onChanged: (text){product.tags=text.trim(); },),
         //Image
         FlexRow(
           delete_image_button,
           Container(
-
             key: ValueKey(img),
             child: Container( height: 100, child: img) ?? Container(width: 100,),
           ),
@@ -245,13 +250,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ]
     );
 
-
-
     return Scaffold(
       appBar: topbar,
       body: SafeArea(
           child: Container(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.all(20),
             child: ListView(
               shrinkWrap: true,
               children: fields

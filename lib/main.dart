@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocero/component/auth.dart';
+import 'package:grocero/dao/dao.dart';
 import 'package:grocero/model/order_model.dart';
 import 'package:grocero/model/user_model.dart';
 import 'package:grocero/routes.dart';
@@ -20,6 +21,7 @@ void main() async {
 class GroceroApp extends StatelessWidget {
   static GroceroApp sharedApp = GroceroApp();
   UserModel currentUser;
+  DAO dao = LocalDAO();
   Router router = Router();
   //OrderModel currentOrder;
 

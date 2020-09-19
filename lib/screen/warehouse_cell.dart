@@ -4,6 +4,7 @@ import 'package:grocero/component/db.dart';
 import 'package:grocero/dao/order_dao.dart';
 import 'package:grocero/dao/order_item_dao.dart';
 import 'package:grocero/dao/product_dao.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/order_model.dart';
@@ -37,7 +38,7 @@ class _WarehouseCellState extends State<WarehouseCell> {
   }
 
   void refreshData() async {
-    product = await ProductDAO.get(product.id);
+    product = await GroceroApp.sharedApp.dao.Product.get(product.id);
   }
 
   @override

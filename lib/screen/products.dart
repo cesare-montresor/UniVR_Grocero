@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grocero/component/dateutils.dart';
 import 'package:grocero/component/db.dart';
+import 'package:grocero/dao/dao.dart';
 import 'package:grocero/dao/order_dao.dart';
 import 'package:grocero/dao/order_item_dao.dart';
 import 'package:grocero/dao/product_dao.dart';
@@ -49,6 +50,7 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
+  DAO dao = GroceroApp.sharedApp.dao;
   UserModel user = GroceroApp.sharedApp.currentUser;
   Future<List<ProductModel>> products;
   Future<OrderModel> order;
@@ -83,28 +85,29 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void refreshProduct(){
     if (widget.filter.category_id != null){
       // view products in shopping cart
-      products = ProductDAO.getByCategoryID(widget.filter.category_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
+      products = dao.Product.getByCategoryID(widget.filter.category_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
     }
     else if (widget.filter.order_id != null){
       // View products in order_id
-      products = ProductDAO.getOrderID(widget.filter.order_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
+      products = dao.Product.getOrderID(widget.filter.order_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
     }else{
       // view products in shopping cart
-      products = ProductDAO.getCurrentOrder(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
+      products = dao.Product.getCurrentOrder(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
     }
   }
 
   void refreshOrder(){
+
     if (widget.filter.category_id != null){
       // view products in shopping cart
-      order = OrderDAO.getCurrent();
+      order = dao.Order.getCurrent();
     }
     else if (widget.filter.order_id != null){
       // View products in order_id
-      order = OrderDAO.get(widget.filter.order_id);
+      order = dao.Order.get(widget.filter.order_id);
     }else{
       // view products in shopping cart
-      order = OrderDAO.getCurrent();
+      order = dao.Order.getCurrent();
     }
   }
 
@@ -118,7 +121,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<bool> findUnavailable() async {
     OrderModel o = await order;
     List<ProductModel> ps = await products;
-    List<OrderItemModel> oi = await OrderItemDAO.getByOrderID(o.id);
+    List<OrderItemModel> oi = await dao.OrderItem.getByOrderID(o.id);
 
 
     return true;
@@ -126,7 +129,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   void removeUnavailable() async{
     OrderModel o = await order;
-    int i = await OrderItemDAO.deleteUnavailableItems(o.id);
+    int i = await dao.OrderItem.deleteUnavailableItems(o.id);
     refreshData();
     setState(() {});
     Navigator.of(context).pop();
@@ -140,7 +143,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void sendRequest(BuildContext context, String request) async {
     OrderModel o = await order;
     if (request == 'open_checkout'){
-      int unavailNum = await OrderItemDAO.countUnavailableItems(o.id);
+      int unavailNum = await dao.OrderItem.countUnavailableItems(o.id);
       if ( unavailNum > 0 ){
         showDialog(context: context, builder: (_)=>
           AlertDialog(

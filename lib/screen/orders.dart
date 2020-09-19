@@ -31,9 +31,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
     UserModel user = GroceroApp.sharedApp.currentUser;
     if (user.isWorker()) {
-      this.orders = OrderDAO.all();
+      this.orders = GroceroApp.sharedApp.dao.Order.all();
     }else{
-      this.orders = OrderDAO.getHistory();
+      this.orders = GroceroApp.sharedApp.dao.Order.getHistory();
     }
   }
 

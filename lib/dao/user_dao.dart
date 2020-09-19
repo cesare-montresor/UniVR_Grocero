@@ -1,9 +1,14 @@
 import 'package:grocero/model/user_model.dart';
 import '../component/db.dart';
 
-class UserDAO{
+abstract class UserDAO{
+  Future<UserModel> get(int id);
+  Future<UserModel> searchByEmail(String email);
+}
 
-  static Future<UserModel> get(int id) async {
+class LocalUserDAO implements UserDAO{
+
+  Future<UserModel> get(int id) async {
     var rows = await DB.query(UserModel.referenceTable(),
         where:'id = ?',
         whereArgs:[id]
@@ -12,7 +17,7 @@ class UserDAO{
     return UserModel.fromMap(rows[0]);
   }
 
-  static Future<UserModel> searchByEmail(String email) async {
+  Future<UserModel> searchByEmail(String email) async {
     var rows = await DB.query(UserModel.referenceTable(),
         where:'email = ?',
         whereArgs:[email]

@@ -8,27 +8,15 @@ class OrderItemModel extends Model {
   int product_id;
   int amount;
 
-  /* from product table*/
-  String name;
-  String brand;
-  String qty;
-  int available;
-  double price;
 
   static String referenceTable() => "order_item";
   String tableName() => referenceTable();
 
   @override
-  OrderItemModel({int id, int order_id, int product_id, int amount, String name, String brand, String qty, int available, double price }) : super(id: id) {
+  OrderItemModel({int id, int order_id, int product_id, int amount}) : super(id: id) {
     this.order_id = order_id;
     this.product_id=product_id;
     this.amount=amount ?? 0;
-    /* product table*/
-    this.name = name;
-    this.brand = brand;
-    this.qty = qty;
-    this.available = available;
-    this.price = price;
   }
 
   @override
@@ -36,12 +24,6 @@ class OrderItemModel extends Model {
     this.order_id = map['order_id'];
     this.product_id = map['product_id'];
     this.amount=map['amount'] ?? 0;
-    /* product table*/
-    this.name = map['name'];
-    this.brand = map['brand'];
-    this.qty = map['qty'];
-    this.available = map['available'];
-    this.price = map['price'];
   }
 
   @override

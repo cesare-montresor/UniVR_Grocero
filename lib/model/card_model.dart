@@ -23,8 +23,6 @@ class CardModel extends Model {
     this.points=map['points'] ?? 0;
   }
 
-
-
   @override
   Map<String, dynamic> toMap() {
     var data = super.toMap();

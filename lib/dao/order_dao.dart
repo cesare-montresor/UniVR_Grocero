@@ -6,9 +6,17 @@ import 'package:grocero/model/order_model.dart';
 import 'package:grocero/model/user_model.dart';
 import '../component/db.dart';
 
-class OrderDAO{
+abstract class OrderDAO{
+  void updateTotal(int order_id);
+  Future<OrderModel> get(int id);
+  Future<OrderModel> getCurrent();
+  Future<List<OrderModel>> getHistory();
+  Future<List<OrderModel>> all();
+}
 
-  static void updateTotal(int order_id) async {
+class LocalOrderDAO implements OrderDAO{
+
+  void updateTotal(int order_id) async {
     String sql = """
       UPDATE 'order' SET 
       price = ( 
@@ -23,14 +31,14 @@ class OrderDAO{
     await DB.rawQuery( sql , [order_id] );
   }
 
-  static Future<OrderModel> get(int id) async {
+  Future<OrderModel> get(int id) async {
     var row = await DB.get( OrderModel.referenceTable(), id );
     if ( row.length == 0 ){ return null; }
     return OrderModel.fromMap(row);
   }
 
 
-  static Future<OrderModel> getCurrent() async {
+  Future<OrderModel> getCurrent() async {
     UserModel user = GroceroApp.sharedApp.currentUser;
     //Search for cart
     var rows = await DB.query( OrderModel.referenceTable(), where: 'user_id = ? AND state = ?', whereArgs:[user.id, OrderState.StateCurrent] );
@@ -50,14 +58,14 @@ class OrderDAO{
   }
 
   //TODO add sort by
-  static Future<List<OrderModel>> getHistory() async {
+  Future<List<OrderModel>> getHistory() async {
     UserModel user = GroceroApp.sharedApp.currentUser;
     var rows = await DB.query( OrderModel.referenceTable(), where: 'user_id = ? AND state != ?', whereArgs: [user.id,OrderState.StateCurrent] );
     List<OrderModel> orders = rows.map((row)=>OrderModel.fromMap(row)).toList();
     return orders;
   }
 
-  static Future<List<OrderModel>> all() async {
+  Future<List<OrderModel>> all() async {
     var rows = await DB.query( OrderModel.referenceTable());
     List<OrderModel> orders = rows.map((row)=>OrderModel.fromMap(row)).toList();
     return orders;

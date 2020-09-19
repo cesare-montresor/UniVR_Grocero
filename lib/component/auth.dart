@@ -14,7 +14,7 @@ class Auth {
     int user_id = sp.getInt(KeyCurrentUser);
     if (user_id != null){
       //TODO: replace user_id with token and store authtoken in db.
-      var user = await UserDAO.get(user_id);
+      var user = await GroceroApp.sharedApp.dao.User.get(user_id);
       GroceroApp.sharedApp.currentUser = user;
       return true;
     }
@@ -48,7 +48,7 @@ class Auth {
   }
 
   static Future<bool> login(String email, String pass) async {
-    var user = await UserDAO.searchByEmail(email);
+    var user = await GroceroApp.sharedApp.dao.User.searchByEmail(email);
     if (user != null && user.password == pass) {
       GroceroApp.sharedApp.currentUser = user;
       await writeSettings();

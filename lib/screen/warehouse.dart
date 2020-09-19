@@ -70,7 +70,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   }
 
   void refreshData(){
-    products = ProductDAO.all(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
+    products = GroceroApp.sharedApp.dao.Product.all(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
   }
 
   void toggleOrder(String column_name){

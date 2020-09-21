@@ -88,9 +88,9 @@ class MainMenu extends StatelessWidget{
         FlatButton(child: Text("Annulla"), onPressed: (){
           Navigator.of(context).pop();
         }),
-        FlatButton(child: Text("Esci", style: TextStyle(color: Colors.red),), onPressed: (){
-          Auth.logout();
-          Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
+        FlatButton(child: Text("Esci", style: TextStyle(color: Colors.red),), onPressed: () async {
+          await Auth.logout();
+          Navigator.pushNamedAndRemoveUntil(context, Router.RouteLogin, (_) => false);
         },),
       ],
     );
@@ -111,7 +111,7 @@ class MainMenu extends StatelessWidget{
             child: Column(
               children: [
                 ListView(
-                    key: ValueKey(menuItems.length),
+                    key: ObjectKey(menuItems),
                     physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     children: menuItems,

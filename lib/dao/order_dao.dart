@@ -7,7 +7,7 @@ import 'package:grocero/model/user_model.dart';
 import '../component/db.dart';
 
 abstract class OrderDAO{
-  void updateTotal(int order_id);
+  Future<void> updateTotal(int order_id);
   Future<OrderModel> get(int id);
   Future<OrderModel> getCurrent();
   Future<List<OrderModel>> getHistory();
@@ -16,7 +16,7 @@ abstract class OrderDAO{
 
 class LocalOrderDAO implements OrderDAO{
 
-  void updateTotal(int order_id) async {
+  Future<void> updateTotal(int order_id) async {
     String sql = """
       UPDATE 'order' SET 
       price = ( 

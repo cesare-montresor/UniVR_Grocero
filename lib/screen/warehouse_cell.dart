@@ -10,6 +10,7 @@ import 'package:grocero/model/order_item_model.dart';
 import 'package:grocero/model/order_model.dart';
 import 'package:grocero/model/product_model.dart';
 import 'package:grocero/screen/products.dart';
+import 'package:grocero/theme/grocero_icons_icons.dart';
 
 typedef WarehouseCellOnSelectProduct = void Function(ProductModel product);
 
@@ -102,7 +103,7 @@ class _WarehouseCellState extends State<WarehouseCell> {
                     children: <Widget>[
                       Container(
                         height: 90,
-                        child: ProductModel.pictureByID(product.id),
+                        child: ProductImage.loadProductImage(product.id),
                       ),
                       Expanded(
                         child: Column(
@@ -116,6 +117,15 @@ class _WarehouseCellState extends State<WarehouseCell> {
                                 style: TextStyle(fontSize: 30),),
                             ]
                         ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(20,0,5,0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(GroceroIcons.box),
+                          Text(product.available.toString(), style: TextStyle(fontSize: 20),)
+                        ],),
                       ),
                       Container(width: 50, child:Icon(Icons.arrow_forward_ios)),
                     ],

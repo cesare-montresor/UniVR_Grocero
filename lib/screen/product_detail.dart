@@ -10,10 +10,11 @@ import 'package:grocero/main.dart';
 import 'package:grocero/model/category_model.dart';
 import 'package:grocero/model/product_model.dart';
 import 'package:grocero/model/user_model.dart';
+import 'package:grocero/theme/grocero_icons_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:image/image.dart' as ImgLib;
+
 
 typedef ProductDetailSuccess =  void Function();
 
@@ -41,7 +42,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   TextEditingController price;
   TextEditingController type;
   TextEditingController tags;
-  Image img;
+  Widget img;
   File imgFile;
 
   Widget widget_cat_list;
@@ -64,24 +65,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     bool has_product = (product != null);
     if ( product == null){
       product = ProductModel();
+      product.name = "";
+      product.brand = "";
+      product.available = 0;
+      product.price = 0.0;
+      product.type = "";
+      product.tags = "";
+      product.qty = "1 kg";
     }
 
-    //For Listbox
-    catByID = {};
-    //for  (CategoryModel cat in categories){
-    //  catByID[cat.id] = cat;
-    //}
-
     name= TextEditingController(text: has_product ? product.name :'' );
-    // selected_category = has_product && catByID.containsKey(product.category_id)? catByID[product.category_id] : categories[0]?.id ; //TODO category selector
-    // selected_category = 0;
-
     brand= TextEditingController(text: has_product ? product.brand :'');
+    selected_category = has_product && product.category_id != null? product.category_id : null; //TODO category selector
     qty= TextEditingController(text: has_product ? product.qty :'');
     available= TextEditingController(text: has_product ? product?.available?.toString() : '0');
     price= TextEditingController(text: has_product ? product?.price?.toStringAsFixed(2) : '0.0');
     type= TextEditingController(text: has_product ? product.type :'');
     tags= TextEditingController(text: has_product ? product.tags :'');
+    img=  has_product ? ProductImage.loadProductImage(product.id): ProductImage.ImageNotFound;
   }
 
   category_changed( int value) async {
@@ -90,26 +91,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   save_product({bool close}) async {
+    //Save data
     await DB.save(product);
-    if (imgFile != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      String img_path = join(
-          directory.path, 'image', 'product_${product.id}.jpg');
+
+    //Save image
+    String doc_path = GroceroApp.sharedApp.documentPath;
+    String img_path = join(doc_path, 'image', 'product_${product.id}.jpg');
+    if (File(img_path).existsSync()){
+      File(img_path).delete();
+    }
+    if (imgFile != null){
       imgFile.copy(img_path);
       Fluttertoast.showToast(
         msg: "Prodotto salvato",
         toastLength: Toast.LENGTH_SHORT,
         timeInSecForIosWeb: 1,
       );
-
-      if (widget.onSuccess != null) {
-        widget.onSuccess();
-      }
-
-      if (close) {
-        Navigator.of(this.context).pop();
-      }
     }
+
+    if (widget.onSuccess != null) {
+      widget.onSuccess();
+    }
+
+    if (close == true) {
+      Navigator.of(this.context).pop();
+    }
+
   }
 
   open_picker() async{
@@ -117,7 +124,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (tmp_file != null) {
       imgFile = tmp_file;
       setState(() {
-        img = Image.file(tmp_file);
+        img = Image.file(imgFile);
       });
     }
   }
@@ -153,7 +160,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     Widget delete_image_button = ( img == null ) ?
-      RaisedButton(child: Text("Selezione immagine"), onPressed: ()=>open_picker(),):
+      RaisedButton(child: Text("Selezione immagine"), onPressed: ()=>open_picker(),) :
       RaisedButton(child: Text("Elimina immagine"), onPressed: ()=>remove_image(),);
 
 
@@ -162,17 +169,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       builder: (BuildContext context, AsyncSnapshot<List<CategoryModel>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done){
           var cats = snapshot.data;
-          return Container( child: DropdownButton(
+          //return IconButton(icon: Icon(Icons.delete));
+          return DropdownButton(
             items: cats.map((cat)=>DropdownMenuItem(child: Text(cat.name), value:cat.id)).toList(),
             value: selected_category,
             onChanged: (value) => category_changed(value),
-          ));
+          );
         }
-        return DropdownButton(items: [], onChanged: (value) {  },);
+        return Container(); //
       },
     );
 
-    TextStyle titleStyle = TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 2, color:Colors.black54, decoration: TextDecoration.underline);
+    TextStyle titleStyle = TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 2, color:Colors.black54);
 
     List<Widget> fields =  [
         // Nome
@@ -184,10 +192,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Text("BRAND", style: titleStyle),
           TextField(controller: brand, textAlign:  TextAlign.left , onChanged: (text){product.brand=text.trim(); },)
         ),
-        FlexRow(
-          Text("CATEGORIA", style: titleStyle),
-          widget_cat_list,
+
+        Container(
+          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text("CATEGORIA", style: titleStyle),
+              Expanded(child: Container()),
+              widget_cat_list
+            ],
+          ),
         ),
+
+
         FlexRow(
           Text("QUANTITÀ", style: titleStyle),
           TextField(controller: qty, textAlign: TextAlign.right, onChanged: (text){product.qty=text.trim(); },),
@@ -235,18 +254,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             key: ValueKey(img),
             child: Container( height: 100, child: img) ?? Container(width: 100,),
           ),
-        ),
-        FlexRow(
-          RaisedButton(child: Text("Salva"), onPressed: ()=>save_product()),
-          RaisedButton(child: Text("Salva e chiudi"), onPressed: ()=>save_product(close:true)),
-        ),
+        )
     ];
 
 
     AppBar topbar = AppBar(
         title: Text(product?.name != null ? product.name :  "Nuovo Prodotto"),
         actions: [
-          IconButton(icon: Icon(Icons.save_alt), onPressed: ()=>save_product())
+          IconButton(icon: Icon(GroceroIcons.floppy), onPressed: ()=>save_product())
         ]
     );
 

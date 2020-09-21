@@ -9,10 +9,17 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  SplashScreenController _ctrl = SplashScreenController();
+  SplashScreenController ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    ctrl = SplashScreenController();
+  }
+
   @override
   Widget build(BuildContext context) {
-    _ctrl.startTimer(context);
+    ctrl.startTimer(context);
     return Scaffold(
       body: Center(
         child: Column(

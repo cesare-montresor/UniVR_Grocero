@@ -11,19 +11,23 @@ import 'package:grocero/screen/products.dart';
 import 'package:grocero/screen/profile.dart';
 
 
-
-
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  HomeScreenController ctrl = HomeScreenController();
+  HomeScreenController ctrl;
+  MainMenu mainMenu = MainMenu();
 
   @override
   void initState() {
     super.initState();
+    mainMenu.initComponent(menuOnClick);
+
+    ctrl = HomeScreenController();
+    ctrl.init();
+    ctrl.mainMenu = mainMenu;
   }
 
   @override
@@ -43,10 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void toggleSearchBar(){
     ctrl.toggleSearchBar();
-  }
-
-  void updateSearchbar(){
-    ctrl.updateSearchbar();
     setState(() {});
   }
 
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
         drawer: ctrl.mainMenu.build(context),
         backgroundColor: Colors.white,
-        appBar: AppBar(title: ctrl.appBarTitle, backgroundColor: Colors.orange, actions: <Widget>[
+        appBar: AppBar(title: ctrl.appBarTitle, key: ValueKey(ctrl.appBarTitle), backgroundColor: Colors.orange, actions: <Widget>[
           searchButton
         ],),
         body: SafeArea( child:pageView )

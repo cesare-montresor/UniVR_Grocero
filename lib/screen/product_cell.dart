@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grocero/component/db.dart';
+import 'package:grocero/controller/product_cell_controller.dart';
 import 'package:grocero/dao/order_dao.dart';
 import 'package:grocero/dao/order_item_dao.dart';
 import 'package:grocero/main.dart';
@@ -24,113 +25,69 @@ class ProductCell extends StatefulWidget {
 }
 
 class _ProductCellState extends State<ProductCell> {
-  bool activeOrder;
-  Future<List<OrderItemModel>> order_item;
-  OrderModel order;
-  ProductModel product;
-  Widget availableText;
-  TextEditingController qty_controller;
-  Widget last_order_item_widget = Container();
+  ProductCellController ctrl;
 
   @override
   void initState() {
     super.initState();
-    activeOrder = (widget.order.state == OrderState.StateCurrent);
-
-    product = widget.product;
-    order = widget.order;
-
-    availableText = (product.available > 0) ? Container(width: 0, height: 0) : Text("NON DISPONIBILE", style: TextStyle(color: Colors.deepOrange, fontSize: 10));
-    qty_controller = TextEditingController();
-    refresh();
-  }
-
-  void refresh(){
-    order_item = GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
+    ctrl = ProductCellController();
+    ctrl.init(widget.product, widget.order);
   }
 
   @override
   void dispose() {
-    qty_controller.dispose();
+    ctrl.dispose();
     super.dispose();
+
   }
 
   // mario.rossi@gmail.com
   // luigi.bianchi@gmail.com
 
   void changeQuantity(int delta, {String text}) async {
-    // Update UI
-
-    int amount = int.parse(text == null? qty_controller.text: text) + delta;
-    if (amount < 0) {
-      amount = 0;
-    }
-    if (amount>product.available){
-      amount=product.available;
-    }
-
-
-    List<OrderItemModel> item_list = await GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
-    OrderItemModel item;
-    if (item_list.length == 0) {
-      if (amount > 0){
-        item = OrderItemModel(order_id: order.id, amount: amount, product_id: product.id);
-        DB.save(item);
-      }
-    } else {
-      item = item_list[0];
-      if (amount == 0) {
-        await DB.delete(item);
-
-      }else {
-        item.amount = amount;
-        DB.save(item);
-      }
-    }
-
-    GroceroApp.sharedApp.dao.Order.updateTotal(order.id);
-    order = await GroceroApp.sharedApp.dao.Order.get(order.id);
-
+    await ctrl.changeQuantity(delta, text: text);
     if (widget.onChange != null){
-      widget.onChange(amount);
+      widget.onChange( int.tryParse(ctrl.qty_controller.text) );
     }
-    if (delta!=0) {
-      qty_controller.text = "$amount";
-    }
-    refresh();
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    order_item = GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(order.id, product.id);
+    ctrl.order_item = GroceroApp.sharedApp.dao.OrderItem.getOrderProduct(ctrl.order.id, ctrl.product.id);
     return FutureBuilder<List<OrderItemModel>>(
-        future: order_item,
+        future: ctrl.order_item,
         builder: (BuildContext context, AsyncSnapshot<List<OrderItemModel>> snapshot) {
           if (snapshot.hasData ) {
-            last_order_item_widget  =  buildCell(context, (snapshot.data.length>0? snapshot.data[0]: null) );
+            ctrl.last_order_item_widget  =  buildCell(context, (snapshot.data.length>0? snapshot.data[0]: null) );
           }
-          return last_order_item_widget;
+          return ctrl.last_order_item_widget;
         }
     );
   }
 
   Widget buildCell(BuildContext context, OrderItemModel order_item) {
-    qty_controller.text = order_item == null ? "0" : order_item.amount.toString();
+    ctrl.qty_controller.text = order_item == null ? "0" : order_item.amount.toString();
 
     Widget qtyControls = Container(width: 0, height: 0);
-    if (activeOrder && product.available > 0) {
+    if (ctrl.activeOrder && ctrl.product.available > 0) {
       qtyControls = Container(
-        width: 40,
+        padding: EdgeInsets.all(1.0),
+        margin: EdgeInsets.all(5),
+        width: 50,
+        height: 100,
         child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              RaisedButton(child: Text("+", style: TextStyle(
-                  fontSize: 20)), onPressed: () =>
+              RaisedButton(child: Container(
+                child: Text("+", style: TextStyle(
+                    fontSize: 25)),
+              ), onPressed: () =>
                   changeQuantity(1),),
-              RaisedButton(child: Text("-", style: TextStyle(
-                  fontSize: 20)), onPressed: () =>
+              RaisedButton(child: Container(
+                child: Text("-", style: TextStyle(
+                    fontSize: 25)),
+              ), onPressed: () =>
                   changeQuantity(-1),)
             ]
         ),
@@ -138,23 +95,82 @@ class _ProductCellState extends State<ProductCell> {
 
     }
 
+    int amount = int.tryParse(ctrl.qty_controller.text) ?? 0;
+    double total = ctrl.product.price*amount;
+    Widget rowTotal;
+    if (total > 0) {
+      rowTotal = Container(
+          width: 50,
+          height: 50,
+          alignment: Alignment.center,
+          child: Text("€\n" + total.toStringAsFixed(2), textAlign: TextAlign.center,)
+      );
+    }else{
+      rowTotal = Container();
+    }
+
     Widget qtyText = Container(
         width: 50,
-        height: 50,
+        height: 100,
         padding: EdgeInsets.all(1.0),
-        margin: EdgeInsets.all(10),
+        margin: EdgeInsets.all(5),
         color: Colors.grey,
-        child: TextField(
-          controller: qty_controller,
-          textAlign: TextAlign.center,
-          onEditingComplete: (){
-            changeQuantity(0);
-            FocusScope.of(context).unfocus();
-          },
-          //onChanged: (text) => changeQuantity(0),
-          enabled: activeOrder && product.available > 0,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            TextField(
+              controller: ctrl.qty_controller,
+              textAlign: TextAlign.center,
+              onEditingComplete: (){
+                changeQuantity(0);
+                FocusScope.of(context).unfocus();
+              },
+              onSubmitted:(value) {
+                changeQuantity(0);
+                FocusScope.of(context).unfocus();
+              },
+              //onChanged: (text) => changeQuantity(0),
+              enabled: ctrl.activeOrder && ctrl.product.available > 0,
+            ),
+            rowTotal
+          ],
         )
     );
+
+    Widget controls = Container(
+        //color: Colors.red,
+        child:Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        qtyText,
+        qtyControls
+      ],
+    ));
+
+    Widget prod_info = Column(children: [
+      Row(
+          children: [
+        Container(
+          height: 90,
+          child: ProductImage.loadProductImage(ctrl.product.id),
+        ),
+        Expanded(child:Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              ctrl.availableText,
+              Text(ctrl.product.brand.toUpperCase(), style: TextStyle(fontSize: 18,)),
+              Text(ctrl.product.qty),
+              Text("€ ${ctrl.product.price.toStringAsFixed(2)}",
+                style: TextStyle(fontSize: 30),),
+            ]),
+        )
+      ]),
+
+      Text("${ctrl.product.type.trim()} ${ctrl.product.tags.trim()}",
+          style: TextStyle(fontSize: 10)),
+    ],);
 
 
     return Container(
@@ -171,40 +187,19 @@ class _ProductCellState extends State<ProductCell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(product.name, style: TextStyle(fontSize: 20)),
-              Container(
+              Text(ctrl.product.name, style: TextStyle(fontSize: 20)),
+              Expanded(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      height: 90,
-                      child: ProductModel.pictureByID(product.id),
-                    ),
-                    Expanded(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: <Widget>[
-                            availableText,
-                            Text(product.brand.toUpperCase(),
-                                style: TextStyle(fontSize: 18,)),
-                            Text(product.qty),
-                            Text("€ ${product.price.toStringAsFixed(2)}",
-                              style: TextStyle(fontSize: 30),),
-                          ]
-                      ),
-                    ),
-                    qtyText,
-                    Container(width: 50, child:qtyControls ),
-                  ],
-                ),
-              ),
-              Text("${product.type.trim()} ${product.tags.trim()}",
-                  style: TextStyle(fontSize: 10)),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                  Expanded(child: prod_info),
+                  controls
+                ],),
+              )
             ],
           )
-      ),
-    );
+        ),
+      );
   }
 
 }

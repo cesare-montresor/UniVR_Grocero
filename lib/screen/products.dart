@@ -1,20 +1,11 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grocero/component/dateutils.dart';
-import 'package:grocero/component/db.dart';
-import 'package:grocero/dao/dao.dart';
-import 'package:grocero/dao/order_dao.dart';
-import 'package:grocero/dao/order_item_dao.dart';
-import 'package:grocero/dao/product_dao.dart';
-import 'package:grocero/main.dart';
-import 'package:grocero/model/order_item_model.dart';
+import 'package:grocero/controller/product_controller.dart';
 import 'package:grocero/model/order_model.dart';
 import 'package:grocero/model/product_model.dart';
-import 'package:grocero/model/user_model.dart';
 import 'package:grocero/screen/product_cell.dart';
 
 /*
@@ -50,87 +41,29 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  DAO dao = GroceroApp.sharedApp.dao;
-  UserModel user = GroceroApp.sharedApp.currentUser;
-  Future<List<ProductModel>> products;
-  Future<OrderModel> order;
-
-  //Searchbar
-  TextEditingController _searchController;
-  bool searchBarVisible = false;
-  String searchBy = '';
-  String orderBy = 'brand';
-  bool reverse = false;
-  bool searchChanged = false;
+  ProductsScreenController ctrl;
   Widget last_product_widget = Container(width: 0.0, height: 0.0);
   Widget last_order_widget = Container(width: 0.0, height: 0.0);
 
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: "");
-    refreshData();
+    ctrl=ProductsScreenController();
+    ctrl.init(widget.filter);
   }
 
   void toggleSearchBar(){
-    widget.filter.show_searchbar = !widget.filter.show_searchbar;
+    ctrl.toggleSearchBar();
     setState(() {});
   }
-
-  void refreshData(){
-    refreshProduct();
-    refreshOrder();
-  }
-
-  void refreshProduct(){
-    if (widget.filter.category_id != null){
-      // view products in shopping cart
-      products = dao.Product.getByCategoryID(widget.filter.category_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
-    }
-    else if (widget.filter.order_id != null){
-      // View products in order_id
-      products = dao.Product.getOrderID(widget.filter.order_id, searchBy: searchBy, orderBy: orderBy, reverse: reverse);
-    }else{
-      // view products in shopping cart
-      products = dao.Product.getCurrentOrder(searchBy: searchBy, orderBy: orderBy, reverse: reverse);
-    }
-  }
-
-  void refreshOrder(){
-
-    if (widget.filter.category_id != null){
-      // view products in shopping cart
-      order = dao.Order.getCurrent();
-    }
-    else if (widget.filter.order_id != null){
-      // View products in order_id
-      order = dao.Order.get(widget.filter.order_id);
-    }else{
-      // view products in shopping cart
-      order = dao.Order.getCurrent();
-    }
-  }
-
 
   void cellChanged(int amount) async{
-    //if (widget.filter.category_id != null )
-    refreshData();
+    ctrl.refreshData();
     setState(() {});
-  }
-
-  Future<bool> findUnavailable() async {
-    OrderModel o = await order;
-    List<ProductModel> ps = await products;
-    List<OrderItemModel> oi = await dao.OrderItem.getByOrderID(o.id);
-
-
-    return true;
   }
 
   void removeUnavailable() async{
-    OrderModel o = await order;
-    int i = await dao.OrderItem.deleteUnavailableItems(o.id);
-    refreshData();
+    ctrl.removeUnavailable();
     setState(() {});
     Navigator.of(context).pop();
   }
@@ -141,9 +74,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void sendRequest(BuildContext context, String request) async {
-    OrderModel o = await order;
+    OrderModel o = await ctrl.order;
     if (request == 'open_checkout'){
-      int unavailNum = await dao.OrderItem.countUnavailableItems(o.id);
+      int unavailNum = await ctrl.countUnavailable();
       if ( unavailNum > 0 ){
         showDialog(context: context, builder: (_)=>
           AlertDialog(
@@ -164,103 +97,86 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (widget.onRequest != null){
       widget.onRequest(request);
     }
+    setState(() {});
   }
 
   void toggleOrder(String column_name){
-    if (orderBy == column_name){
-      reverse = !reverse;
-    }else{
-      orderBy=column_name;
-      reverse = false;
-    }
-    searchChanged=!searchChanged;
-    refreshData();
+    ctrl.toggleOrder(column_name);
     setState(() {});
   }
 
   void resetSearch(){
-    bool changed = false;
-    if ( searchBy != ''  || reverse != false || searchBy != 'brand' ){
-      changed = true;
-    }
-
-    searchBy = '';
-    orderBy = 'brand';
-    reverse = false;
-    _searchController.text = searchBy;
-
-    if ( changed ) {
-      searchChanged=!searchChanged;
-      refreshData();
-      setState(() {});
-    }
+    ctrl.resetSearch();
+    setState(() {});
   }
 
   void searchTextChanged(String text){
-    searchBy = text;
-    refreshData();
+    ctrl.searchTextChanged(text);
     setState(() {});
+  }
+
+  @override
+  Widget buildSearchBar(BuildContext context) {
+
+    return Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child:  Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(.0),
+                    offset: Offset(0, 0),
+                    blurRadius: 20,
+                    spreadRadius: 3)
+              ]
+          ),
+
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+          key: ValueKey(widget.filter.show_searchbar),
+          height: widget.filter.show_searchbar ?110:0,
+          child: Column(children: <Widget>[
+            TextField(decoration: InputDecoration(hintText: "Cerca"), controller: ctrl.searchController, onChanged: (text)=>searchTextChanged(text),),
+            Row(children: <Widget>[
+              RaisedButton(
+                onPressed: ()=>toggleOrder('brand'),
+                child: Row(children: <Widget>[
+                  Icon(Icons.sort_by_alpha),
+                  ctrl.orderBy == 'brand' ? ctrl.reverse ? Icon(Icons.keyboard_arrow_down):Icon(Icons.keyboard_arrow_up):Icon(Icons.sort),
+                ],)
+                ,),
+              RaisedButton(
+                onPressed: ()=>toggleOrder('price'),
+                child: Row(children: <Widget>[
+                  Icon(Icons.attach_money),
+                  ctrl.orderBy == 'price' ? ctrl.reverse ? Icon(Icons.keyboard_arrow_down):Icon(Icons.keyboard_arrow_up):Icon(Icons.sort),
+                ],)
+                ,),
+              Expanded(child: Container(),),
+              RaisedButton(
+                  onPressed: ()=>resetSearch(),
+                  child: Text("Reset")
+              ),
+
+
+            ],)
+          ],),
+        )
+    );
   }
 
   @override
   Widget build(BuildContext context) {
 
-    Widget searchBar = Container(
-        color: Colors.transparent,
-        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child:  Container(
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
-                boxShadow: [
-                    BoxShadow(
-                    color: Colors.black.withOpacity(.0),
-                    offset: Offset(0, 0),
-                    blurRadius: 20,
-                    spreadRadius: 3)
-                ]
-            ),
-
-            padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-            key: ValueKey(widget.filter.show_searchbar),
-            height: widget.filter.show_searchbar ?110:0,
-            child: Column(children: <Widget>[
-              TextField(decoration: InputDecoration(hintText: "Cerca"), controller: _searchController, onChanged: (text)=>searchTextChanged(text),),
-              Row(children: <Widget>[
-                RaisedButton(
-                  onPressed: ()=>toggleOrder('brand'),
-                  child: Row(children: <Widget>[
-                    Icon(Icons.sort_by_alpha),
-                    orderBy == 'brand' ? reverse ? Icon(Icons.keyboard_arrow_down):Icon(Icons.keyboard_arrow_up):Icon(Icons.sort),
-                  ],)
-                  ,),
-                RaisedButton(
-                  onPressed: ()=>toggleOrder('price'),
-                  child: Row(children: <Widget>[
-                    Icon(Icons.attach_money),
-                    orderBy == 'price' ? reverse ? Icon(Icons.keyboard_arrow_down):Icon(Icons.keyboard_arrow_up):Icon(Icons.sort),
-                  ],)
-                  ,),
-                  Expanded(child: Container(),),
-                  RaisedButton(
-                      onPressed: ()=>resetSearch(),
-                      child: Text("Reset")
-                  ),
-
-
-              ],)
-            ],),
-        )
-    );
-
-
     return  FutureBuilder<List<ProductModel>>(
-        future: this.products,
+        future: ctrl.products,
         builder: (BuildContext context, AsyncSnapshot<List<ProductModel>> snapshot) {
           if (snapshot.hasData){
             var products = snapshot.data;
             last_product_widget = FutureBuilder<OrderModel>(
-                future: this.order,
+                future: ctrl.order,
                 builder: (BuildContext context, AsyncSnapshot<OrderModel> snapshot) {
                   if (snapshot.hasData){
                     var order = snapshot.data;
@@ -272,10 +188,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     Widget core = Container(
                       color: Color.fromRGBO(240, 240, 240, 1),
                       child: Column(children: <Widget>[
-                        searchBar,
+                        buildSearchBar(context),
                         Expanded(
                           child: ListView.builder(
-                            key: ValueKey(products.length > 0 ? products.last.id/products.first.id+products.length*0.1: products),
+                            key: ValueKey(products.length > 0 ? (products.last.id-products.first.id)+products.length*0.1: products),
                             itemCount: products.length,
                             itemBuilder: (BuildContext ctxt, int index) => ProductCell(product:products[index], order:order, onChange: cellChanged, ),
                           ),

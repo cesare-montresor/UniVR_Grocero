@@ -193,8 +193,9 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                               itemCount: products.length,
                               itemBuilder: (BuildContext ctxt, int index) => WarehouseCell(product:products[index], onSelectProduct: onSelectProduct),
                           ),
-                      )
-                    ])
+                      ),
+                    ],
+                    )
                 );
             }
           return last_product_widget;

@@ -12,7 +12,7 @@ import 'package:grocero/screen/products.dart';
 
 class HomeScreenController extends Controller{
   Future<List<CategoryModel>> categories;
-  MainMenu mainMenu = MainMenu();
+  MainMenu mainMenu;
   int defaultPage = 4;
   int currentPage = 0;
   PageController pageController;
@@ -24,7 +24,7 @@ class HomeScreenController extends Controller{
   bool showSearchButton = true;
 
   void init(){
-    mainMenu.initComponent(menuOnClick);
+
     this.categories = GroceroApp.sharedApp.dao.Category.all();
 
     pageController = PageController(initialPage: 0);
@@ -53,7 +53,6 @@ class HomeScreenController extends Controller{
   void toggleSearchBar(){
     searchBarVisible = !searchBarVisible;
     updateSearchbar();
-
   }
 
   void updateSearchbar(){

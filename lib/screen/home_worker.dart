@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocero/dao/category_dao.dart';
 import 'package:grocero/model/category_model.dart';
+import 'package:grocero/routes.dart';
 import 'package:grocero/screen/menu.dart';
 import 'package:grocero/screen/orders.dart';
 import 'package:grocero/screen/products.dart';
@@ -27,6 +28,7 @@ class _HomeScreenWorkerState extends State<HomeWorkerScreen> {
   List<MainMenuItem> _pageMenuItems;
   bool searchBarVisible = false;
   bool showSearchButton = true;
+  int lastUpdate=0;
 
   @override
   void initState() {
@@ -58,7 +60,15 @@ class _HomeScreenWorkerState extends State<HomeWorkerScreen> {
   void toggleSearchBar(){
     searchBarVisible = !searchBarVisible;
     updateSearchbar();
+  }
 
+  void onProductDetailSuccess(){
+    lastUpdate++;
+    setState(() {});
+  }
+
+  void addProduct(){
+    Navigator.of(context).pushNamed(Router.RouteProductDetail, arguments:{'onSuccess':onProductDetailSuccess});
   }
 
   void updateSearchbar(){
@@ -97,7 +107,7 @@ class _HomeScreenWorkerState extends State<HomeWorkerScreen> {
     WarehouseFilter filter = WarehouseFilter();
     filter.show_searchbar = searchBarVisible;
     _widgetPages = [
-      WarehouseScreen(filter: filter),
+      WarehouseScreen(filter: filter, key: ValueKey(lastUpdate),),
       OrdersScreen(),
       ProfileScreen(),
     ];
@@ -119,6 +129,7 @@ class _HomeScreenWorkerState extends State<HomeWorkerScreen> {
     );
 
     Widget searchButton = showSearchButton?IconButton(icon: Icon(Icons.search), onPressed: ()=>toggleSearchBar()):Container();
+    Widget addButton = showSearchButton?FloatingActionButton(child: Icon(Icons.add), onPressed: ()=>addProduct()):Container();
 
     return Scaffold(
         drawer: mainMenu.build(context),
@@ -129,6 +140,7 @@ class _HomeScreenWorkerState extends State<HomeWorkerScreen> {
           actions: <Widget>[
             searchButton
           ],),
+          floatingActionButton: addButton,
         body: SafeArea( child:pageView )
     );
 

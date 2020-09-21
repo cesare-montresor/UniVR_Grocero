@@ -42,7 +42,7 @@ class Auth {
     return -1;
   }
 
-  static void logout() async{
+  static Future<void> logout() async{
     GroceroApp.sharedApp.currentUser = null;
     await writeSettings();
   }

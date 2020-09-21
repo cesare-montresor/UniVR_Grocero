@@ -17,11 +17,12 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  CheckoutScreenController ctrl = CheckoutScreenController();
+  CheckoutScreenController ctrl;
 
   @override
   void initState() {
     super.initState();
+    ctrl = CheckoutScreenController();
     ctrl.init();
   }
 

@@ -3,9 +3,58 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:grocero/main.dart';
 import 'package:grocero/model/model.dart';
 import 'package:grocero/model/user_model.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+
+
+//TODO: Move Image widget generation to Extension for Product (requires flutter>2.7 )
+/*
+extension LoadImage on ProductModel {
+
+}
+ */
+
+class ProductImage{
+  static final String document_path = GroceroApp.sharedApp.documentPath.toString();
+  static Widget ImageNotFound = Container();
+
+  static Widget loadProductImage(int product_id) {
+    String filename = 'product_${product_id}.jpg';
+    String docPath = join(document_path, 'image', filename );
+    File docFile = File(docPath);
+    if ( docFile.existsSync() ){
+      return Image.file(docFile);
+    }else{
+      String assetPath = join('asset', 'image', filename);
+      /*
+      rootBundle.load(assetPath).then((data){
+        List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        File(docPath).writeAsBytes(bytes).then((value){});
+      });
+       */
+      try {
+        return Image.asset(assetPath);
+      } catch (error) {
+        return ImageNotFound;
+      }
+    }
+    return ImageNotFound;
+  }
+
+  static Widget loadIamge(String imgPath) {
+    File imgFile = File(imgPath);
+    if ( imgFile.existsSync() ){
+      return Image.file(imgFile);
+    }else{
+      return ImageNotFound;
+    }
+  }
+
+}
+
 
 class ProductModel extends Model {
   int category_id;
@@ -16,22 +65,9 @@ class ProductModel extends Model {
   double price;
   String type;
   String tags;
-  Image img;
 
   static String referenceTable() => "product";
   String tableName() => referenceTable();
-
-  static Image pictureByID(int product_id) {
-    var path = "asset/image/product_$product_id.jpg";
-    return Image.asset(path);
-  }
-   
-  Image picture(){
-    if (this.img == null){
-      this.img = pictureByID(this.id);
-    }
-    return this.img;
-  }
 
   @override
   ProductModel({int id, int category_id, String name, String brand, String qty, int available, double price, String type, String tags }) : super(id: id) {
@@ -70,6 +106,5 @@ class ProductModel extends Model {
     data["tags"] = this.tags;
     return data;
   }
-
 
 }

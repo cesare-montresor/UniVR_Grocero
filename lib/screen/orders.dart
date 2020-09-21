@@ -1,59 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grocero/component/dateutils.dart';
-import 'package:grocero/dao/order_dao.dart';
-import 'package:grocero/main.dart';
+import 'package:grocero/controller/orders_controller.dart';
 import 'package:grocero/model/order_model.dart';
-import 'package:grocero/model/product_model.dart';
-import 'package:grocero/model/user_model.dart';
-import 'package:grocero/routes.dart';
 
-/*
-int user_id;
-String state;
-int creation_date;
-int delivery_date;
-int delivery_interval;
-double price;
-String payment_type;
-int points;
-*/
+
 class OrdersScreen extends StatefulWidget {
   @override
   _OrdersScreenState createState() => _OrdersScreenState();
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  Future<List<OrderModel>> orders;
+  OrdersScreenController ctrl = OrdersScreenController();
 
   @override
   void initState() {
     super.initState();
-    UserModel user = GroceroApp.sharedApp.currentUser;
-    if (user.isWorker()) {
-      this.orders = GroceroApp.sharedApp.dao.Order.all();
-    }else{
-      this.orders = GroceroApp.sharedApp.dao.Order.getHistory();
-    }
-  }
-
-  String stateToText(String state){
-    if ( state == OrderState.StateCurrent ) {return "Aperto";}
-    if ( state == OrderState.StateConfirm ) {return "Confermato";}
-    if ( state == OrderState.StateProcess ) {return "In lavorazione";}
-    if ( state == OrderState.StateDelivery ) {return "Spedito";}
-    return state;
+    ctrl = OrdersScreenController();
+    ctrl.init();
   }
 
   void onTapRow(BuildContext context, OrderModel order){
-    //TODO: handle row tap, open details
-    Navigator.of(context).pushNamed( Router.RouteOrderDetail , arguments: {'order_id':order.id} );
+    ctrl.onTapRow(context,order);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<OrderModel>>(
+        future: ctrl.orders,
+        builder: (BuildContext context, AsyncSnapshot<List<OrderModel>> snapshot) {
+          if (snapshot.hasData){
+            var orders = snapshot.data;
+            return ListView.builder(
+                padding: EdgeInsets.all(0),
+                itemCount: orders.length,
+                itemBuilder: (BuildContext ctxt, int index) {
+                  return buildOrderRow(context,orders[index]);
+                }
+            );
+          }
+          return Container(width: 0.0, height: 0.0);
+        }
+    );
   }
 
   Widget buildOrderRow(BuildContext context, OrderModel order){
-    var creation_date = DateUtils.formatDate(order.creation_date);
-    var creation_age = DateUtils.formatAge(order.creation_date);
-    var state = stateToText(order.state);
+    var creation_date = ctrl.formatCreationDate(order.creation_date);
+    var creation_age = ctrl.formatCreationAge(order.creation_date);
+    var state = ctrl.stateToText(order.state);
     /*
     int delivery_date;
     int delivery_interval;
@@ -126,23 +120,5 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
 
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<OrderModel>>(
-      future: this.orders,
-      builder: (BuildContext context, AsyncSnapshot<List<OrderModel>> snapshot) {
-        if (snapshot.hasData){
-          var orders = snapshot.data;
-          return ListView.builder(
-              padding: EdgeInsets.all(0),
-              itemCount: orders.length,
-              itemBuilder: (BuildContext ctxt, int index) {
-              return buildOrderRow(context,orders[index]);
-            }
-          );
-        }
-        return Container(width: 0.0, height: 0.0);
-      }
-    );
-  }
+
 }

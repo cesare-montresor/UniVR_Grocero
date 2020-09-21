@@ -51,7 +51,7 @@ class Router {
         Map<String, dynamic > args = settings.arguments;
         ProductModel product = (args == null) ? null : args['product'];
         ProductDetailSuccess onSuccess = (args == null) ? null : args['onSuccess'];
-        ProductDetailScreen screen = ProductDetailScreen(product: product, onSuccess: onSuccess,);
+        ProductDetailScreen screen = ProductDetailScreen(product: product, onSuccess: onSuccess);
         return screen;
       });
 

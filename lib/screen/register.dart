@@ -42,9 +42,19 @@ class RegisterScreen extends StatelessWidget{
                 TextField( decoration: InputDecoration(hintText: "Telefono"),         onChanged: (text){ phone=text.trim(); } ),
                 SizedBox(height: 20),
                 RaisedButton(
-                    child: Text("Register"),
+                    child: Text("Registra"),
                     onPressed:  () async {
-                      if ( email != "" && password != "" && password == password_repeat ){
+                      if (
+                            email != "" &&
+                            password != "" &&
+                            password == password_repeat &&
+                            surname != "" &&
+                            address != "" &&
+                            zipcode != "" &&
+                            city != "" &&
+                            phone != "" &&
+                            email != ""
+                      ){
                         // Create User
                         var new_user = UserModel(
                           role: UserRole.Client,
@@ -69,7 +79,7 @@ class RegisterScreen extends StatelessWidget{
                         Navigator.of(context).pushReplacementNamed(Router.RouteLogin);
                       }else{
                         Fluttertoast.showToast(
-                          msg: "Password doesn't match",
+                          msg: "Anagrafica incompleta.",
                           toastLength: Toast.LENGTH_SHORT,
                           timeInSecForIosWeb: 1,
                         );
@@ -77,7 +87,7 @@ class RegisterScreen extends StatelessWidget{
                     }
                 ),
                 SizedBox(height: 10),
-                Text("or"),
+                Text("oppure"),
                 FlatButton(
                     child: Text("Login", style: TextStyle(color: Colors.blue),),
                     onPressed:  (){

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:grocero/component/db.dart';
+import 'package:grocero/controller/profile_controller.dart';
 import 'package:grocero/main.dart';
 import 'package:grocero/model/card_model.dart';
 import 'package:grocero/model/user_model.dart';
@@ -13,32 +14,39 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel user = GroceroApp.sharedApp.currentUser;
-  Future<CardModel> cardInfo;
-  Future<WorkerModel> workerInfo;
-
-  String roleToTitle(String worker_role){
-    if (worker_role == WorkerRole.Peon) {return 'Impiegato';}
-    if (worker_role == WorkerRole.Supervisor) {return 'Supervisore';}
-    return "Sconosciuto"; //Capitalize
-  }
-
+  ProfileScreenController ctrl;
 
   @override
   void initState() {
     super.initState();
-    cardInfo = user.cardInfo();
-    workerInfo = user.workerInfo();
+    ctrl = ProfileScreenController();
+    ctrl.init();
   }
+
+  void onSavePressed() async {
+    await ctrl.saveUser();
+    Fluttertoast.showToast(
+      msg: "Profilo aggiornato",
+      toastLength: Toast.LENGTH_SHORT,
+      timeInSecForIosWeb: 1,
+    );
+    //Navigator.of(context).pop();
+  }
+
+  void payment_types_changed( String value) async {
+    ctrl.payment_types_changed(value);
+    setState(() {});
+  }
+
 
   @override
   Widget build(BuildContext context) {
     Widget workBox = Container(width: 0.0, height: 0.0);
     Widget cardBox = Container(width: 0.0, height: 0.0);
 
-    if (user.isWorker()){
+    if (ctrl.user.isWorker()){
       workBox = FutureBuilder<WorkerModel>(
-          future: workerInfo,
+          future: ctrl.workerInfo,
           builder: (BuildContext context, AsyncSnapshot<WorkerModel> snapshot) {
             if (snapshot.hasData){
               final workerInfo = snapshot.data;
@@ -54,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(children: <Widget>[
                     Text("Ruolo", style: TextStyle(color: Colors.black54, fontSize: 16),),
                     Expanded(child: Container(),),
-                    Text( roleToTitle(workerInfo.role), style: TextStyle(color: Colors.grey, fontSize: 16),),
+                    Text( ctrl.roleToTitle(workerInfo.role), style: TextStyle(color: Colors.grey, fontSize: 16),),
                   ],)
                 ] ,
               );
@@ -64,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
     cardBox = FutureBuilder<CardModel>(
-        future: cardInfo,
+        future: ctrl.cardInfo,
         builder: (BuildContext context, AsyncSnapshot<CardModel> snapshot) {
           if (snapshot.hasData){
             final card_info = snapshot.data;
@@ -91,12 +99,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
 
-    var name = TextEditingController(text: user.name);
-    var surname = TextEditingController(text: user.surname);
-    var address = TextEditingController(text: user.address);
-    var zipcode = TextEditingController(text: user.zipcode);
-    var city = TextEditingController(text: user.city);
-    var phone = TextEditingController(text: user.phone);
+    var name = TextEditingController(text: ctrl.user.name);
+    var surname = TextEditingController(text: ctrl.user.surname);
+    var address = TextEditingController(text: ctrl.user.address);
+    var zipcode = TextEditingController(text: ctrl.user.zipcode);
+    var city = TextEditingController(text: ctrl.user.city);
+    var phone = TextEditingController(text: ctrl.user.phone);
+
+
+
+
+    Widget fav_payment = Row(
+      children: <Widget>[
+        Text("Tipo di pagamento"),
+        Expanded(child: Container(),),
+        DropdownButton(
+          items: ctrl.payment_types,
+          value: ctrl.user.fav_payment,
+          onChanged: (value) => payment_types_changed(value),
+        )
+    ],);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -109,25 +131,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 workBox,
                 SizedBox(height: 10),
                 Text("Anagrafica"),
-                TextField( controller:name, decoration: InputDecoration(hintText: "Nome"),             onChanged: (text){  user.name = text.trim(); } ),
-                TextField( controller:surname, decoration: InputDecoration(hintText: "Cognome"),          onChanged: (text){ user.surname=text.trim();} ),
-                TextField( controller:address, decoration: InputDecoration(hintText: "Indirizzo"),        onChanged: (text){ user.address=text.trim(); } ),
-                TextField( controller:zipcode, decoration: InputDecoration(hintText: "CAP"),              onChanged: (text){ user.zipcode=text.trim(); } ),
-                TextField( controller:city, decoration: InputDecoration(hintText: "Città"),            onChanged: (text){ user.city=text.trim(); } ),
-                TextField( controller:phone, decoration: InputDecoration(hintText: "Telefono"),         onChanged: (text){ user.phone=text.trim(); } ),
+                TextField( controller:name, decoration: InputDecoration(hintText: "Nome"),             onChanged: (text){  ctrl.user.name = text.trim(); } ),
+                TextField( controller:surname, decoration: InputDecoration(hintText: "Cognome"),       onChanged: (text){ ctrl.user.surname=text.trim();} ),
+                TextField( controller:address, decoration: InputDecoration(hintText: "Indirizzo"),     onChanged: (text){ ctrl.user.address=text.trim(); } ),
+                TextField( controller:zipcode, decoration: InputDecoration(hintText: "CAP"),           onChanged: (text){ ctrl.user.zipcode=text.trim(); } ),
+                TextField( controller:city, decoration: InputDecoration(hintText: "Città"),            onChanged: (text){ ctrl.user.city=text.trim(); } ),
+                TextField( controller:phone, decoration: InputDecoration(hintText: "Telefono"),        onChanged: (text){ ctrl.user.phone=text.trim(); } ),
+                (ctrl.user.isWorker() ? Container(width: 0.0, height: 0.0,):fav_payment),
                 cardBox,
                 SizedBox(height: 20),
                 RaisedButton(
                     child: Text("Salva"),
-                    onPressed:  () async {
-                        await DB.update(user);
-                        Fluttertoast.showToast(
-                          msg: "Profilo aggiornato",
-                          toastLength: Toast.LENGTH_SHORT,
-                          timeInSecForIosWeb: 1,
-                        );
-                        //Navigator.of(context).pop();
-                    }
+                    onPressed:  () => onSavePressed()
                 ),
               ],
             ),

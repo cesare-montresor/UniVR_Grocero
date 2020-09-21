@@ -37,7 +37,7 @@ class ProductImage{
        */
       try {
         return Image.asset(assetPath);
-      } catch (error) {
+      } catch(error) {
         return ImageNotFound;
       }
     }
@@ -88,7 +88,7 @@ class ProductModel extends Model {
     this.brand = map['brand'];
     this.qty = map['qty'];
     this.available = map['available'];
-    this.price = map['price'];
+    this.price = map['price']*1.0;
     this.type = map['type'];
     this.tags = map['tags'];
   }
@@ -101,7 +101,7 @@ class ProductModel extends Model {
     data["brand"] = this.brand;
     data["qty"] = this.qty;
     data["available"] = this.available;
-    data["price"] = this.price;
+    data["price"] = this.price*1.0;
     data["type"] = this.type;
     data["tags"] = this.tags;
     return data;

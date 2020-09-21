@@ -105,7 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 SizedBox(height: 10),
 
 
-                Row( children: <Widget>[
+                Row(children: <Widget>[
                   Text("Giorno",  style: label_style),
                   Expanded(child: Container(),),
                   widget_date,

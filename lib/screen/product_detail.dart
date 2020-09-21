@@ -61,12 +61,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     product = widget.product;
+    selected_category = 1;
     categories = GroceroApp.sharedApp.dao.Category.all();
     bool has_product = (product != null);
     if ( product == null){
       product = ProductModel();
       product.name = "";
       product.brand = "";
+      product.category_id = 1;
       product.available = 0;
       product.price = 0.0;
       product.type = "";
@@ -79,7 +81,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     selected_category = has_product && product.category_id != null? product.category_id : null; //TODO category selector
     qty= TextEditingController(text: has_product ? product.qty :'');
     available= TextEditingController(text: has_product ? product?.available?.toString() : '0');
-    price= TextEditingController(text: has_product ? product?.price?.toStringAsFixed(2) : '0.0');
+    price= TextEditingController(text: has_product ? product.price.toStringAsFixed(2) : '0.0');
     type= TextEditingController(text: has_product ? product.type :'');
     tags= TextEditingController(text: has_product ? product.tags :'');
     img=  has_product ? ProductImage.loadProductImage(product.id): ProductImage.ImageNotFound;
@@ -87,6 +89,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   category_changed( int value) async {
     selected_category = value;
+    product.category_id = value;
     setState(() {});
   }
 
@@ -102,21 +105,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
     if (imgFile != null){
       imgFile.copy(img_path);
-      Fluttertoast.showToast(
-        msg: "Prodotto salvato",
-        toastLength: Toast.LENGTH_SHORT,
-        timeInSecForIosWeb: 1,
-      );
     }
+    Fluttertoast.showToast(
+      msg: "Prodotto salvato",
+      toastLength: Toast.LENGTH_SHORT,
+      timeInSecForIosWeb: 1,
+    );
 
     if (widget.onSuccess != null) {
       widget.onSuccess();
     }
 
-    if (close == true) {
-      Navigator.of(this.context).pop();
-    }
 
+    Navigator.of(this.context).pop();
   }
 
   open_picker() async{
@@ -142,7 +143,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
       child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: left,
@@ -159,7 +160,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget delete_image_button = ( img == null ) ?
+    Widget delete_image_button = ( img == ProductImage.ImageNotFound ) ?
       RaisedButton(child: Text("Selezione immagine"), onPressed: ()=>open_picker(),) :
       RaisedButton(child: Text("Elimina immagine"), onPressed: ()=>remove_image(),);
 
@@ -197,7 +198,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text("CATEGORIA", style: titleStyle),
               Expanded(child: Container()),
@@ -220,7 +221,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               name.text = clean;
             }
             int value = int.tryParse(clean) ?? 0;
-            if (value < 0){ value = 0;}
+            if (value == null || value < 0){ value = 0;}
             product.available = value;
           },),
         ),
@@ -234,8 +235,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               name.text = clean;
             }
             double value = double.tryParse(clean) ?? 0;
-            if (value < 0){ value = 0;}
-            product.price = value;
+            if (value == null || value < 0){ value = 0;}
+            product.price = value*1.0;
           },),
         ),
 
@@ -252,7 +253,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           delete_image_button,
           Container(
             key: ValueKey(img),
-            child: Container( height: 100, child: img) ?? Container(width: 100,),
+            child: Container( height: 100, child: img ?? Container(width: 100,)),
           ),
         )
     ];

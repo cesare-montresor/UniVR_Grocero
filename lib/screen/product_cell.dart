@@ -73,7 +73,7 @@ class _ProductCellState extends State<ProductCell> {
     if (ctrl.activeOrder && ctrl.product.available > 0) {
       qtyControls = Container(
         padding: EdgeInsets.all(1.0),
-        margin: EdgeInsets.all(5),
+        margin: EdgeInsets.fromLTRB(5,5,5,0),
         width: 50,
         height: 100,
         child: Column(
@@ -113,7 +113,7 @@ class _ProductCellState extends State<ProductCell> {
         width: 50,
         height: 100,
         padding: EdgeInsets.all(1.0),
-        margin: EdgeInsets.all(5),
+        margin: EdgeInsets.fromLTRB(5,5,5,0),
         color: Colors.grey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -148,11 +148,13 @@ class _ProductCellState extends State<ProductCell> {
       ],
     ));
 
-    Widget prod_info = Column(children: [
+    Widget prod_info = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
       Row(
           children: [
         Container(
-          height: 90,
+          height: 80,
           child: ProductImage.loadProductImage(ctrl.product.id),
         ),
         Expanded(child:Column(
@@ -168,8 +170,11 @@ class _ProductCellState extends State<ProductCell> {
         )
       ]),
 
-      Text("${ctrl.product.type.trim()} ${ctrl.product.tags.trim()}",
-          style: TextStyle(fontSize: 10)),
+      Expanded(
+        child: Text("${ctrl.product.type.trim()} ${ctrl.product.tags.trim()}",
+            textAlign: TextAlign.start,
+            style: TextStyle(fontSize: 10)),
+      ),
     ],);
 
 
@@ -178,7 +183,7 @@ class _ProductCellState extends State<ProductCell> {
       padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
 
       child: Container(
-          height: 160,
+          height: 150,
           decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10)

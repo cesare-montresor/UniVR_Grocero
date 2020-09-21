@@ -7,7 +7,7 @@ import 'package:grocero/model/order_model.dart';
 import 'package:grocero/model/user_model.dart';
 
 import 'package:grocero/main.dart';
-import 'file:///C:/Users/Cesare/Projects/projct_progII/grocero/lib/controller/controller.dart';
+import 'package:grocero/controller/controller.dart';
 import 'package:intl/intl.dart';
 
 class CheckoutScreenController extends Controller{
@@ -67,7 +67,7 @@ class CheckoutScreenController extends Controller{
     delivery_date = await showDatePicker(
       context: context,
       initialDatePickerMode: DatePickerMode.day,
-      initialDate: today,
+      initialDate: delivery_date,
       firstDate: today,
       lastDate: today.add( Duration(days: 14) ),
     );
